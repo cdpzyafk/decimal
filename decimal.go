@@ -1159,12 +1159,31 @@ func Max(first Decimal, rest ...Decimal) Decimal {
 
 // Sum returns the combined total of the provided first and rest Decimals
 func Sum(first Decimal, rest ...Decimal) Decimal {
-	total := first
-	for _, item := range rest {
-		total = total.Add(item)
+	baseScale := first.exp
+	for i := 0; i < len(rest); i++ {
+		if rest[i].exp < baseScale {
+			baseScale = rest[i].exp
+		}
+	}
+	d3Value := new(big.Int)
+	if first.exp != baseScale {
+		first = first.rescale(baseScale)
+	}
+	d4Value := new(big.Int).Set(first.value)
+	for i := 0; i < len(rest); i++ {
+		rd := rest[i]
+		if rest[i].exp != baseScale {
+			rd = rest[i].rescale(baseScale)
+		}
+
+		d3Value.Add(d4Value, rd.value)
+		d4Value.Set(d3Value)
 	}
 
-	return total
+	return Decimal{
+		value: d4Value,
+		exp:   baseScale,
+	}
 }
 
 // Avg returns the average value of the provided first and rest Decimals

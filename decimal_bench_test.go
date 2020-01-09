@@ -183,3 +183,19 @@ func Benchmark_decimal_Decimal_Sub_same_precision(b *testing.B) {
 		d1.Add(d2)
 	}
 }
+
+func BenchmarkDecimal_decimal_Sum(b *testing.B) {
+	vals := make([]Decimal, 10)
+	var i = int64(0)
+
+	for key := range vals {
+		vals[key] = New(i, 0)
+		i++
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		Sum(vals[0], vals[1:]...)
+	}
+}
